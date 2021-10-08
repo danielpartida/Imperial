@@ -1,22 +1,44 @@
-# Month 0
-ma_0 = 0.30
-mb_0 = 0.40
-mc_0 = 0.30 # For simplicity define platform c as the unsubscribed users
-control_0 = ma_0 + mb_0 + mc_0 # See if the sum of all platforms equals 1
+library(igraph)
 
-# Month 1
-ma_1 = ma_0 - ma_0*0.5 + mb_0*0.2 + mc_0*0.2
-mb_1 = mb_0 + ma_0*0.3 - mb_0*0.8 + mc_0*0.4
-mc_1 = mc_0 + ma_0*0.2 + mb_0*0.6 - mc_0*0.6
-control_1 = ma_1 + mb_1 + mc_1 # After month 1 the sum should be 1 again
+# For simplicity define platform C as the unsubscribed users
+subscriptions = graph( edges=c("A","A", "B","B", "C","C", "A","B", "A","C", "B","A", "B", "C"))
+#subscriptions$weights = c() 
 
-# Month 2
-ma_2 = ma_1 - ma_1*0.5 + mb_1*0.2 + mc_1*0.2
-mb_2 = mb_1 + ma_1*0.3 - mb_1*0.8 + mc_1*0.4
-mc_2 = mc_1 + ma_1*0.2 + mb_1*0.6 - mc_1*0.6
-control_2 = ma_2 + mb_2 + mc_2 # After month 2 the sum should be 1 again
+# x_y shows transition from platform x to y
+a_a = 0.5
+a_b = 0.3
+a_c = 1 - a_a - a_b
+b_a = 0.2
+b_b = 0.2
+b_c = 1 - b_a - b_b
+c_a = 0.2
+c_b = 0.4
+c_c = 1 - c_a - c_b
 
-# For matrix A creation. Each platform is a row
-# Each column is a different time step
-A = cbind(c(ma_0, mb_0, mc_0), c(ma_1, mb_1, mc_1), c(ma_2, mb_2, mc_2))
+# Construct matrix A describing the flow trainsition
+# Each platform is a row. Each column is a different time step
+A = rbind(c(a_a, a_b, a_c), c(b_a, b_b, b_c), c(c_a, c_b, c_c))
+rownames(A) = c( "A","B","C")
+colnames(A) = c("A","B", "C")
+A
+
+## Now use the Spectram Theorem from class
+e = eigen(A) # Compute eigenvalues & eigenvectors
+ew = e$values # Store eigenvalues of A
+ew
+
+D = diag(ew) # Create diagonal matrix containing eigenvalues
+D
+
+U = e$vectors # Store eigenvectors of A
+U
+
+U_inv = t(U)  # Assumtion taken since U is symmetric
+
+orth = round(U_inv %*% U,digits=0) # Check that eigenvectors are orthogonal
+orth
+
+# Reconstruct matrix A using the eigenvalue decomposition
+B = U %*% D %*% U_inv # Reconstruct matrix A = B
+B
 A
